@@ -1,0 +1,55 @@
+---
+- name: Deploy applications on Kubernetes
+  hosts: k8s-master
+  become: true
+  tasks:
+    # 1. Nginx Deployment & Service
+    - name: Deploy Nginx
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/nginx-deployment.yml') }}"
+
+    - name: Expose Nginx service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/services/nginx-service.yml') }}"
+
+    # 2. Backend (Node.js) Deployment & Service
+    - name: Deploy Backend
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/backend-deployment.yml') }}"
+
+    - name: Expose Backend service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/services/backend-service.yml') }}"
+
+    # 3. Database (Postgres) StatefulSet & Service
+    - name: Deploy Postgres
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/postgres-statefulset.yml') }}"
+
+    - name: Expose Postgres service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/services/postgres-service.yml') }}"
+
+    # 4. Redis Deployment & Service
+    - name: Deploy Redis
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/redis-deployment.yml') }}"
+
+    - name: Expose Redis service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/services/redis-service.yml') }}"
+
+    # 5. Ingress (경로 기반 라우팅)
+    - name: Apply ingress rules
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/ingress/ingress-rules.yml') }}"
+

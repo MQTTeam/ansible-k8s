@@ -1,0 +1,191 @@
+---
+- name: Prepare all nodes for Kubernetes
+  hosts: k8s
+  become: true
+  tasks:
+
+    # --------------------
+    # SELinux 비활성화 및 자동 재부팅
+    # --------------------
+    - name: Temporarily set SELinux to permissive mode
+      command: setenforce 0
+      ignore_errors: yes
+
+    - name: Disable SELinux permanently
+      replace:
+        path: /etc/selinux/config
+        regexp: '^SELINUX=.*'
+        replace: 'SELINUX=disabled'
+      register: selinux_changed
+
+    - name: Reboot if SELinux config changed
+      reboot:
+        msg: "Rebooting because SELinux was disabled"
+        pre_reboot_delay: 2
+        reboot_timeout: 300
+      when: selinux_changed.changed and inventory_hostname != "ansible-server"
+
+    # --------------------
+    # Swap 비활성화
+    # --------------------
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Remove swap entry from /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^(.*swap.*)$'
+        replace: '# \1'
+
+    # --------------------
+    # 필수 패키지 설치
+    # --------------------
+    - name: Install required packages
+      dnf:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+          - curl
+          - firewalld
+        state: present
+      ignore_errors: yes
+
+    - name: Enable and start firewalld
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+
+# --------------------
+# Master 방화벽 포트
+# --------------------
+- name: Open firewall ports on Master
+  hosts: k8s-master
+  become: true
+  tasks:
+    - name: Open master required ports
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 6443/tcp
+        - 2379-2380/tcp
+        - 10250/tcp
+        - 10251/tcp
+        - 10252/tcp
+
+    - name: Reload firewalld
+      command: firewall-cmd --reload
+
+# --------------------
+# Worker 방화벽 포트
+# --------------------
+- name: Open firewall ports on Worker
+  hosts: k8s-worker
+  become: true
+  tasks:
+    - name: Open worker required ports
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 10250/tcp
+        - 30000-32767/tcp
+
+    - name: Reload firewalld
+      command: firewall-cmd --reload
+
+# --------------------
+# Docker + Containerd + Kubernetes 설치
+# --------------------
+- name: Install Docker, containerd, and Kubernetes
+  hosts: k8s
+  become: true
+  tasks:
+    # Docker 설치
+    - name: Add Docker repository
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install Docker and containerd
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+      ignore_errors: yes
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Containerd 설정
+    - name: Create containerd config directory
+      file:
+        path: /etc/containerd
+        state: directory
+
+    - name: Generate default containerd config
+      command: containerd config default
+      register: containerd_default_config
+
+    - name: Write containerd config to /etc/containerd/config.toml
+      copy:
+        content: "{{ containerd_default_config.stdout }}"
+        dest: /etc/containerd/config.toml
+
+    - name: Set SystemdCgroup to true in containerd config
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Enable and restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    # Kubernetes repo (v1.32)
+    - name: Add Kubernetes repo
+      copy:
+        dest: /etc/yum.repos.d/kubernetes.repo
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/repodata/repomd.xml.key
+
+    # kubeadm, kubelet, kubectl 설치
+    - name: Install Kubernetes packages
+      dnf:
+        name:
+          - kubelet-1.32.0
+          - kubeadm-1.32.0
+          - kubectl-1.32.0
+        state: present
+        disable_excludes: all
+      ignore_errors: yes
+
+    - name: Enable kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+
+    # kubeadm 이미지 미리 pull
+    - name: Pull kubeadm required images
+      command: kubeadm config images pull
+

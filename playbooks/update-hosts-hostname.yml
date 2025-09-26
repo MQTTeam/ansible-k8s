@@ -1,0 +1,26 @@
+---
+- name: Update hosts file and hostname on all nodes
+  hosts: all
+  become: true
+  tasks:
+    # 1. /etc/hosts 업데이트
+    - name: Update /etc/hosts file
+      template:
+        src: ../templates/hosts.j2
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: '0644'
+
+    # 2. /etc/hostname 업데이트
+    - name: Update /etc/hostname
+      template:
+        src: ../templates/hostname.j2
+        dest: /etc/hostname
+        owner: root
+        group: root
+        mode: '0644'
+
+    # 3. hostname 즉시 적용
+    - name: Apply hostname immediately
+      command: hostnamectl set-hostname {{ inventory_hostname }}

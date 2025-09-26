@@ -1,0 +1,28 @@
+---
+# --------------------
+# Kubernetes 워커 노드 추가
+# --------------------
+- name: Generate new join command on Master
+  hosts: k8s-master
+  become: true
+  tasks:
+    - name: Create new join command (no expiration)
+      command: kubeadm token create --print-join-command --ttl 0
+      register: join_command
+
+    - name: Save join command to fact
+      set_fact:
+        worker_join_cmd: "{{ join_command.stdout }} --cri-socket unix:///run/containerd/containerd.sock"
+
+- name: Join new Worker Nodes
+  hosts: new-worker
+  become: true
+  tasks:
+    - name: Join the worker node to the cluster
+      command: "{{ hostvars[groups['k8s-master'][0]].worker_join_cmd }}"
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      register: worker_join
+      retries: 3
+      delay: 15
+      until: worker_join.rc == 0

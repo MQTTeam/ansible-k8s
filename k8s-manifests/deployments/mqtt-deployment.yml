@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-testserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-testserver
+  template:
+    metadata:
+      labels:
+        app: mqtt-testserver
+    spec:
+      containers:
+      - name: mqtt-testserver
+        image: zhzhzhgkgk/mqtt-testserver:test
+        ports:
+        - containerPort: 1883

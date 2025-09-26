@@ -1,0 +1,54 @@
+# --------------------
+# Kubernetes Master 초기화
+# --------------------
+- name: Initialize Kubernetes Master
+  hosts: k8s-master
+  become: true
+  tasks:
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16 --cri-socket unix:///run/containerd/containerd.sock
+      args:
+        creates: /etc/kubernetes/admin.conf
+      register: kubeadm_init
+
+    - name: Create kube config directory for root
+      file:
+        path: /root/.kube
+        state: directory
+        mode: 0700
+
+    - name: Copy admin.conf to root kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        mode: 0600
+
+    - name: Apply Calico network plugin
+      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: Get join command for worker nodes
+      command: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Save join command to fact
+      set_fact:
+        worker_join_cmd: "{{ join_command.stdout }}"
+
+# --------------------
+# Worker 노드 클러스터 조인
+# --------------------
+- name: Join Worker Nodes to cluster
+  hosts: k8s-worker
+  become: true
+  tasks:
+    - name: Join the worker node to the cluster
+      command: "{{ hostvars[groups['k8s-master'][0]].worker_join_cmd }} --cri-socket unix:///run/containerd/containerd.sock"
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      register: worker_join
+      retries: 3
+      delay: 15
+      until: worker_join.rc == 0

@@ -1,0 +1,11 @@
+[k8s-master]
+192.168.66.11 ansible_host=192.168.66.11 ansible_user=root
+
+[k8s-worker]
+db-worker ansible_host=192.168.66.12 ansible_user=root
+server-worker ansible_host=192.168.66.13 ansible_user=root
+monitoring-worker ansible_host=192.168.66.14 ansible_user=root
+
+[k8s:children]
+k8s-master
+k8s-worker
