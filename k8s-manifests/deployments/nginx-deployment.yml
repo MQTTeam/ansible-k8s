@@ -15,8 +15,10 @@ spec:
       labels:
         app: nginx
     spec:
+      nodeSelector:
+        node-role: app   # server-worker 전용
       containers:
-      - name: nginx
-        image: nginx:latest
-        ports:
-        - containerPort: 80
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80

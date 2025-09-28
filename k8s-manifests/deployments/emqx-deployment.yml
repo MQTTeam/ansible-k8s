@@ -14,11 +14,13 @@ spec:
       labels:
         app: emqx
     spec:
+      nodeSelector:
+        node-role: app   # server-worker에만 스케줄
       containers:
-      - name: emqx
-        image: emqx/emqx:latest
-        ports:
-        - containerPort: 1883   # MQTT
-        - containerPort: 8083   # MQTT over WebSocket
-        - containerPort: 8883   # MQTT over TLS
-        - containerPort: 18083  # Dashboard
+        - name: emqx
+          image: emqx/emqx:latest
+          ports:
+            - containerPort: 1883   # MQTT
+            - containerPort: 8083   # MQTT over WebSocket
+            - containerPort: 8883   # MQTT over TLS
+            - containerPort: 18083  # Dashboard

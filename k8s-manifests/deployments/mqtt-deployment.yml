@@ -12,8 +12,10 @@ spec:
       labels:
         app: mqtt-testserver
     spec:
+      nodeSelector:
+        node-role: app   # server-worker 전용
       containers:
-      - name: mqtt-testserver
-        image: zhzhzhgkgk/mqtt-testserver:test
-        ports:
-        - containerPort: 1883
+        - name: mqtt-testserver
+          image: zhzhzhgkgk/mqtt-testserver:test
+          ports:
+            - containerPort: 1883
