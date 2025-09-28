@@ -8,6 +8,8 @@
       kubernetes.core.k8s:
         state: present
         definition: "{{ lookup('file', '../k8s-manifests/deployments/nginx-deployment.yml') }}"
+        wait: yes
+        wait_timeout: 300   # 최대 5분 기다림
 
     - name: Expose Nginx service
       kubernetes.core.k8s:
