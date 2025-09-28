@@ -6,13 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="31420bf8-aa07-49ac-b95a-a9c9bf118e07" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s-manifests/deployments/postgres-statefulset.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/deployments/postgres-statefulset.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s-manifests/deployments/redis-statefulset.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/deployments/redis-statefulset.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s-manifests/services/postgres-service.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s-manifests/services/redis-service.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/k8s-manifests/storage/pv.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/storage/pv.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/k8s-manifests/storage/pvcs.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/storage/pvcs.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playbooks/deploy-apps.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbooks/deploy-apps.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playbooks/label-nodes.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbooks/label-nodes.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,7 +77,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1759061368281</updated>
-      <workItem from="1759061369204" duration="9992000" />
+      <workItem from="1759061369204" duration="11116000" />
     </task>
     <servers />
   </component>

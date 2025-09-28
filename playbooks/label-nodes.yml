@@ -4,9 +4,9 @@
   become: true
   tasks:
     - name: Apply node labels
-      command: kubectl label node {{ item.name }} node-role={{ item.role }} --overwrite
+      command: kubectl label node {{ item.name }} role={{ item.role }} --overwrite
       loop:
-        - { name: "master", role: "gui" }
+        - { name: "master", role: "master" }
         - { name: "db-worker", role: "db" }
         - { name: "server-worker", role: "app" }
         - { name: "monitoring-worker", role: "monitoring" }

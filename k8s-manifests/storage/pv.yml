@@ -19,7 +19,7 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - db-worker
+                - db
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -28,7 +28,7 @@ metadata:
   namespace: default
 spec:
   capacity:
-    storage: 20Gi # 추후 10G로 수정
+    storage: 10Gi # 추후 10G로 수정
   accessModes:
     - ReadWriteOnce
   hostPath:
@@ -42,4 +42,4 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - db-worker
+                - db
