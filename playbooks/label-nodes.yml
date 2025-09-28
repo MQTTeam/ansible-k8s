@@ -1,0 +1,12 @@
+---
+- name: Label Kubernetes nodes
+  hosts: k8s-master
+  become: true
+  tasks:
+    - name: Apply node labels
+      command: kubectl label node {{ item.name }} node-role={{ item.role }} --overwrite
+      loop:
+        - { name: "master", role: "gui" }
+        - { name: "db-worker", role: "db" }
+        - { name: "server-worker", role: "app" }
+        - { name: "monitoring-worker", role: "monitoring" }
