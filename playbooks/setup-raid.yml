@@ -1,0 +1,148 @@
+---
+- name: Setup RAID and mount for Postgres and Redis with automatic startup
+  hosts: db-worker
+  become: true
+  tasks:
+
+    # --------------------
+    # mdadm 설치
+    # --------------------
+    - name: Install mdadm
+      dnf:
+        name: mdadm
+        state: present
+
+    # --------------------
+    # Postgres RAID-1 20G
+    # --------------------
+    - name: Create RAID-1 for Postgres
+      command: >
+        mdadm --create --verbose /dev/md0
+        --level=1 --raid-devices=2 /dev/nvme0n2 /dev/nvme0n3
+        --metadata=1.0 --assume-clean
+      args:
+        creates: /dev/md0
+      register: postgres_raid
+      async: 600
+      poll: 5
+
+    - name: Wait for RAID-1 /dev/md0 to appear
+      wait_for:
+        path: /dev/md0
+        state: present
+        timeout: 300
+
+    - name: Create filesystem on Postgres RAID
+      filesystem:
+        fstype: ext4
+        dev: /dev/md0
+
+    - name: Create Postgres mount directory
+      file:
+        path: /pg
+        state: directory
+        mode: '0755'
+
+    - name: Mount Postgres RAID
+      mount:
+        path: /pg
+        src: /dev/md0
+        fstype: ext4
+        state: mounted
+
+    - name: Ensure Postgres RAID is persistent in /etc/fstab
+      mount:
+        path: /pg
+        src: /dev/md0
+        fstype: ext4
+        opts: defaults
+        state: present
+
+    # --------------------
+    # Redis RAID-1 10G
+    # --------------------
+    - name: Create RAID-1 for Redis
+      command: >
+        mdadm --create --verbose /dev/md1
+        --level=1 --raid-devices=2 /dev/nvme0n4 /dev/nvme0n5 --force
+        --metadata=1.0 --assume-clean
+      args:
+        creates: /dev/md1
+      register: redis_raid
+      async: 600
+      poll: 5
+
+    - name: Wait for RAID-1 /dev/md1 to appear
+      wait_for:
+        path: /dev/md1
+        state: present
+        timeout: 300
+
+    - name: Create filesystem on Redis RAID
+      filesystem:
+        fstype: ext4
+        dev: /dev/md1
+
+    - name: Create Redis mount directory
+      file:
+        path: /redis
+        state: directory
+        mode: '0755'
+
+    - name: Mount Redis RAID
+      mount:
+        path: /redis
+        src: /dev/md1
+        fstype: ext4
+        state: mounted
+
+    - name: Ensure Redis RAID is persistent in /etc/fstab
+      mount:
+        path: /redis
+        src: /dev/md1
+        fstype: ext4
+        opts: defaults
+        state: present
+
+    # --------------------
+    # mdadm 구성 업데이트
+    # --------------------
+    - name: Scan RAID devices and update mdadm.conf
+      command: mdadm --detail --scan
+      register: mdadm_scan
+
+    - name: Ensure /etc/mdadm directory exists
+      file:
+        path: /etc/mdadm
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Write RAID config to mdadm.conf
+      copy:
+        content: "{{ mdadm_scan.stdout }}"
+        dest: /etc/mdadm/mdadm.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    # --------------------
+    # RAID 상태 확인 로깅
+    # --------------------
+    - name: Show /proc/mdstat
+      command: cat /proc/mdstat
+      register: mdstat_output
+
+    - name: Print RAID status
+      debug:
+        msg: "{{ mdstat_output.stdout_lines }}"
+
+    # --------------------
+    # Reboot 서버 (RAID 자동 마운트 적용)
+    # --------------------
+    - name: Reboot server to apply RAID configuration
+      reboot:
+        msg: "Rebooting to ensure RAID devices auto-mount at boot"
+        pre_reboot_delay: 5
+        reboot_timeout: 300
