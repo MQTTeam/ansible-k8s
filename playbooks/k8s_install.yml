@@ -1,12 +1,42 @@
 ---
+# ===================================================
+# 1️⃣ Python3 및 Kubernetes 라이브러리 설치
+# ===================================================
+- name: Install Python3 and Kubernetes Python client
+  hosts: k8s
+  become: true
+  tasks:
+    - name: Check if pip3 is installed
+      command: python3 -m pip --version
+      register: pip_check
+      ignore_errors: yes
+
+    - name: Install python3-pip if pip3 not found
+      dnf:
+        name: python3-pip
+        state: present
+      when: pip_check.failed
+
+    - name: Upgrade pip
+      pip:
+        name: pip
+        state: latest
+        executable: pip3
+
+    - name: Install Kubernetes Python client and OpenShift library
+      pip:
+        name:
+          - kubernetes
+          - openshift
+        executable: pip3
+
+# ===================================================
+# 2️⃣ 모든 노드 준비: SELinux, Swap, 필수 패키지
+# ===================================================
 - name: Prepare all nodes for Kubernetes
   hosts: k8s
   become: true
   tasks:
-
-    # --------------------
-    # SELinux 비활성화 및 자동 재부팅
-    # --------------------
     - name: Temporarily set SELinux to permissive mode
       command: setenforce 0
       ignore_errors: yes
@@ -25,9 +55,6 @@
         reboot_timeout: 300
       when: selinux_changed.changed and inventory_hostname != "ansible-server"
 
-    # --------------------
-    # Swap 비활성화
-    # --------------------
     - name: Disable swap
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
@@ -38,9 +65,6 @@
         regexp: '^(.*swap.*)$'
         replace: '# \1'
 
-    # --------------------
-    # 필수 패키지 설치
-    # --------------------
     - name: Install required packages
       dnf:
         name:
@@ -50,7 +74,6 @@
           - curl
           - firewalld
         state: present
-      ignore_errors: yes
 
     - name: Enable and start firewalld
       systemd:
@@ -58,9 +81,9 @@
         state: started
         enabled: yes
 
-# --------------------
-# Master 방화벽 포트
-# --------------------
+# ===================================================
+# 3️⃣ Master 방화벽 포트
+# ===================================================
 - name: Open firewall ports on Master
   hosts: k8s-master
   become: true
@@ -81,9 +104,9 @@
     - name: Reload firewalld
       command: firewall-cmd --reload
 
-# --------------------
-# Worker 방화벽 포트
-# --------------------
+# ===================================================
+# 4️⃣ Worker 방화벽 포트
+# ===================================================
 - name: Open firewall ports on Worker
   hosts: k8s-worker
   become: true
@@ -101,14 +124,13 @@
     - name: Reload firewalld
       command: firewall-cmd --reload
 
-# --------------------
-# Docker + Containerd + Kubernetes 설치
-# --------------------
+# ===================================================
+# 5️⃣ Docker + Containerd + Kubernetes 설치
+# ===================================================
 - name: Install Docker, containerd, and Kubernetes
   hosts: k8s
   become: true
   tasks:
-    # Docker 설치
     - name: Add Docker repository
       get_url:
         url: https://download.docker.com/linux/centos/docker-ce.repo
@@ -121,7 +143,6 @@
           - docker-ce-cli
           - containerd.io
         state: present
-      ignore_errors: yes
 
     - name: Enable and start Docker
       systemd:
@@ -129,7 +150,6 @@
         state: started
         enabled: yes
 
-    # Containerd 설정
     - name: Create containerd config directory
       file:
         path: /etc/containerd
@@ -156,7 +176,6 @@
         state: restarted
         enabled: yes
 
-    # Kubernetes repo (v1.32)
     - name: Add Kubernetes repo
       copy:
         dest: /etc/yum.repos.d/kubernetes.repo
@@ -168,7 +187,6 @@
           gpgcheck=1
           gpgkey=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/repodata/repomd.xml.key
 
-    # kubeadm, kubelet, kubectl 설치
     - name: Install Kubernetes packages
       dnf:
         name:
@@ -177,7 +195,6 @@
           - kubectl-1.32.0
         state: present
         disable_excludes: all
-      ignore_errors: yes
 
     - name: Enable kubelet
       systemd:
@@ -185,7 +202,5 @@
         enabled: yes
         state: started
 
-    # kubeadm 이미지 미리 pull
     - name: Pull kubeadm required images
       command: kubeadm config images pull
-

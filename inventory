@@ -1,5 +1,5 @@
 [k8s-master]
-master ansible_host=192.168.66.11 ansible_user=root ansible_ssh_pass=1234
+master ansible_host=192.168.66.11 ansible_user=root ansible_python_interpreter=/usr/bin/python3
 
 [k8s-worker]
 db-worker ansible_host=192.168.66.12 ansible_user=root
