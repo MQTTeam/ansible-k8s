@@ -16,10 +16,12 @@ spec:
         app: backend
     spec:
       imagePullSecrets:
-      - name: dockerhub-secret
+        - name: dockerhub-secret
       containers:
-      - name: backend
-        image: docker.io/zhzhzhgkgk/mqtteam-archiver-server:1.0
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3000
+        - name: backend
+          image: docker.io/zhzhzhgkgk/mqtteam-archiver-server:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+      nodeSelector:
+        node-role: app

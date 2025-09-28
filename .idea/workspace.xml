@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="31420bf8-aa07-49ac-b95a-a9c9bf118e07" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s-manifests/deployments/backend-deployment.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/deployments/backend-deployment.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +27,10 @@
     "url": "https://github.com/MQTTeam/ansible-k8s.git",
     "accountId": "1be7a017-aac1-4962-9596-67dae1b6d9bf"
   }
+}]]></component>
+  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
 }]]></component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 3
@@ -49,6 +54,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\k8s\ansible-k8s\playbooks" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -65,7 +75,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1759061368281</updated>
-      <workItem from="1759061369204" duration="1680000" />
+      <workItem from="1759061369204" duration="2056000" />
     </task>
     <servers />
   </component>
