@@ -3,18 +3,50 @@
   hosts: k8s-master
   become: true
   tasks:
-    # 1. Nginx Deployment & Service
-    - name: Deploy Nginx
+
+    # 1. Storage (PV → PVC)
+    - name: Apply PersistentVolumes
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../k8s-manifests/deployments/nginx-deployment.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/storage/pv.yml') }}"
+        wait: yes
 
-    - name: Expose Nginx service
+    - name: Apply PersistentVolumeClaims
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../k8s-manifests/services/nginx-service.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/storage/pvcs.yml') }}"
+        wait: yes
 
-    # 2. Backend (Node.js) Deployment & Service
+    # 2. Database (Postgres) StatefulSet & Service
+    - name: Deploy Postgres
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/postgres-statefulset.yml') }}"
+        wait: yes
+        wait_timeout: 300
+
+    # 3. Redis StatefulSet & Service
+    - name: Deploy Redis
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/redis-statefulset.yml') }}"
+        wait: yes
+        wait_timeout: 300
+
+    # 4. Frontend Deployment & Service
+    - name: Deploy Frontend
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/frontend-deployment.yml') }}"
+        wait: yes
+        wait_timeout: 300
+
+    - name: Expose Frontend service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../k8s-manifests/services/frontend-service.yml') }}"
+
+    # 5. Backend (Node.js) Deployment & Service
     - name: Deploy Backend
       kubernetes.core.k8s:
         state: present
@@ -25,31 +57,8 @@
         state: present
         definition: "{{ lookup('file', '../k8s-manifests/services/backend-service.yml') }}"
 
-    # 3. Database (Postgres) StatefulSet & Service
-    - name: Deploy Postgres
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/deployments/postgres-statefulset.yml') }}"
-
-    - name: Expose Postgres service
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/services/postgres-service.yml') }}"
-
-    # 4. Redis Deployment & Service
-    - name: Deploy Redis
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/deployments/redis-deployment.yml') }}"
-
-    - name: Expose Redis service
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/services/redis-service.yml') }}"
-
-    # 5. Ingress (경로 기반 라우팅)
-    - name: Apply ingress rules
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/ingress/ingress-rules.yml') }}"
-
+#    # 6. Ingress (경로 기반 라우팅)
+#    - name: Apply ingress rules
+#      kubernetes.core.k8s:
+#        state: present
+#        definition: "{{ lookup('file', '../k8s-manifests/ingress/ingress-rules.yml') }}"

@@ -19,6 +19,6 @@ spec:
         node-role: app   # server-worker 전용
       containers:
         - name: frontend
-          image: zhzhzhgkgk/mqtteam-frontend:latest
+          image: zhzhzhgkgk/mqtteam-frontend:2.0
           ports:
             - containerPort: 80

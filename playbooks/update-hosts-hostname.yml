@@ -6,7 +6,7 @@
     # 1. /etc/hosts 업데이트
     - name: Update /etc/hosts file
       template:
-        src: ../templates/hosts.j2
+        src: ../templates/host.j2
         dest: /etc/hosts
         owner: root
         group: root

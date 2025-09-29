@@ -1,0 +1,44 @@
+---
+- name: Delete all deployed Kubernetes resources
+  hosts: k8s-master
+  become: true
+  tasks:
+    - name: Delete Redis StatefulSet
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/redis-statefulset.yml') }}"
+
+    - name: Delete Postgres StatefulSet
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/postgres-statefulset.yml') }}"
+
+    - name: Delete Backend Deployment
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/backend-deployment.yml') }}"
+
+    - name: Delete Frontend Deployment
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/frontend-deployment.yml') }}"
+
+    - name: Delete Frontend Service
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/services/frontend-service.yml') }}"
+
+    - name: Delete Backend Service
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/services/backend-service.yml') }}"
+
+    - name: Delete PVCs
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/storage/pvcs.yml') }}"
+
+    - name: Delete PVs
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('file', '../k8s-manifests/storage/pv.yml') }}"
