@@ -18,15 +18,15 @@
         state: absent
         definition: "{{ lookup('file', '../k8s-manifests/deployments/backend-deployment.yml') }}"
 
-    - name: Delete Nginx Deployment
+    - name: Delete Frontend Deployment
       kubernetes.core.k8s:
         state: absent
-        definition: "{{ lookup('file', '../k8s-manifests/deployments/nginx-deployment.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/frontend-deployment.yml') }}"
 
-    - name: Delete Nginx Service
+    - name: Delete Frontend Service
       kubernetes.core.k8s:
         state: absent
-        definition: "{{ lookup('file', '../k8s-manifests/services/nginx-service.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/services/frontend-service.yml') }}"
 
     - name: Delete Backend Service
       kubernetes.core.k8s:

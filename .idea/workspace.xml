@@ -6,9 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="31420bf8-aa07-49ac-b95a-a9c9bf118e07" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s-manifests/deployments/backend-deployment.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/deployments/backend-deployment.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s-manifests/deployments/nginx-deployment.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/deployments/frontend-deployment.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s-manifests/services/nginx-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/services/frontend-service.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/k8s-manifests/storage/pv.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/storage/pv.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s-manifests/storage/pvcs.yml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s-manifests/storage/pvcs.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playbooks/label-nodes.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbooks/label-nodes.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playbooks/delete-apps.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbooks/delete-apps.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playbooks/deploy-apps.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbooks/deploy-apps.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +64,34 @@
       <recent name="C:\k8s\ansible-k8s\playbooks" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="ansible-k8s" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="ansible-k8s" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="ansible-k8s" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="ansible-k8s" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -78,6 +109,8 @@
       <option name="presentableId" value="Default" />
       <updated>1759061368281</updated>
       <workItem from="1759061369204" duration="11116000" />
+      <workItem from="1759158595032" duration="674000" />
+      <workItem from="1759172301313" duration="3226000" />
     </task>
     <servers />
   </component>

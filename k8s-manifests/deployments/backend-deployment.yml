@@ -1,27 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: frontend-deployment
   namespace: default
   labels:
-    app: backend
+    app: frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: backend
+      app: frontend
   template:
     metadata:
       labels:
-        app: backend
+        app: frontend
     spec:
-      imagePullSecrets:
-        - name: dockerhub-secret
-      containers:
-        - name: backend
-          image: docker.io/zhzhzhgkgk/mqtteam-archiver-server:1.0
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 3000
       nodeSelector:
-        node-role: app
+        node-role: app   # server-worker 전용
+      containers:
+        - name: frontend
+          image: zhzhzhgkgk/mqtteam-frontend:latest
+          ports:
+            - containerPort: 80

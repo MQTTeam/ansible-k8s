@@ -33,18 +33,18 @@
         wait: yes
         wait_timeout: 300
 
-    # 4. Nginx Deployment & Service
-    - name: Deploy Nginx
+    # 4. Frontend Deployment & Service
+    - name: Deploy Frontend
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../k8s-manifests/deployments/nginx-deployment.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/deployments/frontend-deployment.yml') }}"
         wait: yes
         wait_timeout: 300
 
-    - name: Expose Nginx service
+    - name: Expose Frontend service
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', '../k8s-manifests/services/nginx-service.yml') }}"
+        definition: "{{ lookup('file', '../k8s-manifests/services/frontend-service.yml') }}"
 
     # 5. Backend (Node.js) Deployment & Service
     - name: Deploy Backend
@@ -57,8 +57,8 @@
         state: present
         definition: "{{ lookup('file', '../k8s-manifests/services/backend-service.yml') }}"
 
-    # 6. Ingress (경로 기반 라우팅)
-    - name: Apply ingress rules
-      kubernetes.core.k8s:
-        state: present
-        definition: "{{ lookup('file', '../k8s-manifests/ingress/ingress-rules.yml') }}"
+#    # 6. Ingress (경로 기반 라우팅)
+#    - name: Apply ingress rules
+#      kubernetes.core.k8s:
+#        state: present
+#        definition: "{{ lookup('file', '../k8s-manifests/ingress/ingress-rules.yml') }}"
