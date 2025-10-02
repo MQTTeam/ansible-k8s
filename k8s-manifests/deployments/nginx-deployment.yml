@@ -15,8 +15,17 @@ spec:
       labels:
         app: nginx
     spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+
       containers:
       - name: nginx
-        image: nginx:latest
+        image: zhzhzhgkgk/mqtteam-frontend:2.0
         ports:
         - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 10

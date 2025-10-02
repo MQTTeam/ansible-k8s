@@ -9,5 +9,5 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 30080   # NodePort 직접 지정 (옵션, 안 쓰면 랜덤)
+      nodePort : 30080
   type: NodePort

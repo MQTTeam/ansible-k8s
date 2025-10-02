@@ -12,8 +12,11 @@ spec:
       labels:
         app: mqtt-testserver
     spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+
       containers:
       - name: mqtt-testserver
-        image: zhzhzhgkgk/mqtt-testserver:test
+        image: zhzhzhgkgk/mqtt-testserver:latest
         ports:
         - containerPort: 1883

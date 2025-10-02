@@ -14,9 +14,12 @@ spec:
       labels:
         app: emqx
     spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+
       containers:
       - name: emqx
-        image: emqx/emqx:latest
+        image: emqx/emqx:5.3.1
         ports:
         - containerPort: 1883   # MQTT
         - containerPort: 8083   # MQTT over WebSocket

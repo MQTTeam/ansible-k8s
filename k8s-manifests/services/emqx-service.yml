@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: emqx-service
+  namespace: default
 spec:
   type: NodePort   # 내부 개발용은 NodePort, 운영은 LoadBalancer or Ingress 권장
   selector:

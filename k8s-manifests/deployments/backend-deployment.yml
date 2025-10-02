@@ -17,9 +17,51 @@ spec:
     spec:
       imagePullSecrets:
       - name: dockerhub-secret
+#      initContainers:   
+#       - name: wait-for-db
+#          image: busybox:1.35
+#          command: ['sh', '-c', 'until nc -z pg.default.svc.cluster.local 5432; do echo waiting for db; sleep 2; done;']
+
+
       containers:
       - name: backend
-        image: docker.io/zhzhzhgkgk/mqtteam-archiver-server:1.0
+        image: zhzhzhgkgk/mqtteam-archiver-server:5.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
+        env:
+        # PostgreSQL 연결 정보
+        - name: DB_HOST
+          value: "pg"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: pg-secret
+              key: POSTGRES_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pg-secret
+              key: POSTGRES_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: pg-secret
+              key: POSTGRES_DB
+        - name: PGSSLMODE
+          value: "disable"
+
+        # Redis 연결 정보
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
