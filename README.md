@@ -1,26 +1,63 @@
 # Calico 네트워크 설치 및 확인 가이드
 
-본 문서는 Kubernetes 클러스터에서 **Calico CNI** 를 적용한 뒤 정상적으로 동작하는지 확인하는 절차를 정리한 가이드입니다.  
 
 ---
 
-## 1. Calico 설치 확인
+
 ```bash
-kubectl -n kube-system get pods -o wide | grep calico
+🔹 1. Calico 설치 및 설정
+1️⃣ Pod CIDR 일치 확인
 
-1️⃣ 커널 및 iptables 기본 세팅 (모든 노드: 마스터 + 워커)
+Kubernetes 클러스터 init 시 지정한 Pod CIDR과 Calico IPPool CIDR이 반드시 같아야 합니다.
 
-Calico와 쿠버네티스 네트워크는 브리지 네트워크를 iptables로 통과시켜야 합니다.
+kubeadm init --pod-network-cidr=192.168.0.0/16
+kubectl get ippool -n kube-system
+kubectl describe ippool default-ipv4-ippool -n kube-system
 
-# 커널 모듈
+
+출력 예시:
+
+Spec:
+  Cidr: 192.168.0.0/16
+  Ipip Mode: Always
+  Vxlan Mode: Never
+
+2️⃣ Calico Pod 상태 확인
+kubectl get pods -n kube-system -o wide | grep calico
+
+
+calico-kube-controllers → Running
+
+각 노드마다 calico-node-xxxxx → Running
+
+3️⃣ Pod 통신/DNS 확인
+# Pod IP 확인
+kubectl get pods -o wide
+
+# 워커1 Pod → 워커2 Pod ping
+kubectl exec -it <pod1> -- ping -c 3 <pod2-IP>
+
+# CoreDNS 조회
+kubectl run tmp-dns --rm -it --image=busybox:1.28 -- nslookup kubernetes.default
+
+
+Pod 간 통신 가능
+
+kubernetes.default 가 10.96.0.1 로 조회되면 정상
+
+🔹 2. iptables 기본 세팅 (모든 노드)
+
+Calico는 내부적으로 iptables를 사용하기 때문에, 커널 및 방화벽 설정이 필요합니다.
+
+1️⃣ 커널 모듈 및 sysctl
 modprobe br_netfilter
 
-# sysctl 적용
 cat <<EOF | tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables=1
 net.bridge.bridge-nf-call-ip6tables=1
 net.ipv4.ip_forward=1
 EOF
+
 sysctl --system
 
 
@@ -30,17 +67,25 @@ sysctl net.bridge.bridge-nf-call-iptables
 sysctl net.ipv4.ip_forward
 
 
-둘 다 =1 이 나와야 정상.
+둘 다 =1 이면 정상.
 
-2️⃣ iptables 포트 확인 (마스터/워커 구분)
+2️⃣ 필수 포트 오픈
 
-📌 마스터 노드:
+📌 마스터 노드
 
-6443 (API 서버), 2379-2380 (etcd), 10250 (kubelet), 10257/10259 (컨트롤러/스케줄러)
+6443 (API 서버)
 
-📌 워커 노드:
+2379-2380 (etcd)
 
-10250 (kubelet), 30000-32767 (NodePort 범위)
+10250 (kubelet)
+
+10257/10259 (컨트롤러/스케줄러)
+
+📌 워커 노드
+
+10250 (kubelet)
+
+30000-32767 (NodePort 범위)
 
 ✅ 확인:
 
@@ -48,69 +93,52 @@ iptables -L -n -v
 iptables -t nat -L -n -v | grep KUBE
 
 
-👉 KUBE-SERVICES, KUBE-NODEPORTS 체인 규칙이 자동 생성되어 있어야 함.
+→ KUBE-SERVICES, KUBE-NODEPORTS 체인이 존재해야 함.
 
-3️⃣ Calico CNI 정상 동작 확인
-kubectl get pods -n kube-system -o wide | grep calico
-
-
-예상 결과:
-
-calico-kube-controllers → Running
-
-calico-node-xxxxx → 각 노드마다 1개씩 Running
-
-kubectl get ippool -n kube-system
-
-
-CIDR이 클러스터에 할당한 Pod 대역(192.168.0.0/16)과 일치해야 함.
-
-✅ Pod IP 확인:
-
-kubectl get pods -o wide
-
-
-👉 Pod IP가 192.168.x.x 대역에서 고르게 분배되는지 확인.
-
-4️⃣ CoreDNS 정상 동작 확인
+🔹 3. CoreDNS 확인
 kubectl get pods -n kube-system -l k8s-app=kube-dns
-kubectl run tmp-dns --rm -it --image=busybox:1.28 -- sh
-/ # nslookup kubernetes.default
+kubectl run tmp-dns --rm -it --image=busybox:1.28 -- nslookup kubernetes.default
 
 
-👉 ClusterIP (10.96.0.1)가 정상적으로 조회되면 OK.
+👉 ClusterIP (10.96.0.1) 정상 조회 시 OK.
 
-5️⃣ 네트워크폴리시(NetworkPolicy) 확인
+🔹 4. NetworkPolicy 확인
+적용된 정책
 kubectl get networkpolicy -A
 
 
-예:
+현재 정책:
 
-allow-backend-to-db: backend → Postgres 접근 허용
+allow-backend-to-db
 
-allow-db-access: 특정 namespace 또는 selector에 대해 db 접근 허용
+대상: app=pg 라벨이 붙은 PostgreSQL Pod
 
-🔎 현재 설정된 Network Policy 정리
+의도: backend Pod → DB(5432) 접근 허용
 
+allow-db-access
 
-1️⃣ allow-backend-to-db
+대상: 마찬가지로 app=pg
 
-대상 Pod: app=pg 라벨이 있는 Postgres Pod
+의도: 특정 namespace 또는 조건에서 DB 접근 허용
 
-정책 의도: backend Pod에서 오는 트래픽만 DB(5432) 접근 허용 (추측)
-
-실제 내용 확인:
-
+실제 확인
 kubectl get networkpolicy allow-backend-to-db -o yaml
-
-2️⃣ allow-db-access
-
-대상 Pod: 마찬가지로 app=pg
-
-정책 의도: 이름상 "DB 접근 허용" → 아마 특정 Namespace 또는 특정 IPBlock에서의 접근 허용
-
-실제 내용 확인:
-
 kubectl get networkpolicy allow-db-access -o yaml
+
+✅ 최종 정상 상태
+
+kubectl get nodes → 모든 노드 Ready
+
+kubectl get pods -A → Calico, CoreDNS, backend, db, redis Running
+
+kubectl get svc → backend-service, pg, redis, emqx 등 서비스 정상
+
+kubectl get endpoints → 서비스에 Pod IP 바인딩 확인
+
+kubectl exec tmp-dns -- nslookup pg → DB DNS 조회 성공
+
+kubectl exec tmp-curl -- curl backend-service:3000/api/health → 헬스체크 성공
+
+NetworkPolicy에 따라 허용된 트래픽만 통과됨
 
 ---
